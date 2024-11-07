@@ -63,6 +63,7 @@ export const uploadMultipleFiles = catchAsyncError(
                 });
 
             console.log(uploadResult?.secure_url);
+            // 
         }
         // console.log(uploadResult);
         next()

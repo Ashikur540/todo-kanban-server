@@ -11,6 +11,11 @@ const todoSchema = new mongoose.Schema({
         type: Array,
         required: false
     },
+    status:{
+        type: String,
+        enum: ["incomplete", "todo", "doing", "completed", "overdue"],
+        default: "todo"
+    },
     createdAt: {
         type: Date,
         default: Date.now
