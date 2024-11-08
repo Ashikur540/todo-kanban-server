@@ -17,11 +17,11 @@ export const getAllTodos = catchAsyncError(
 
 
 export const createTodo = catchAsyncError(async (req, res) => {
-    
-    
+
+
     const { todo } = req.body;
     const attachmentUrls = req.uploadedFiles; // Access the uploaded URLs here
-    
+
     // Save to database with the URLs
     const newTodo = await Todo.create({
         todo,
@@ -29,4 +29,34 @@ export const createTodo = catchAsyncError(async (req, res) => {
     });
 
     res.json({ success: true, todo: newTodo });
+});
+
+
+
+export const updateTodo = catchAsyncError(async (req, res) => {
+    const { id } = req.params;
+    const { todo } = req.body;
+    const attachmentUrls = req.uploadedFiles;
+
+    const todoToUpdate = await Todo.findById(id);
+    if (!todoToUpdate) {
+        return next(new ErrorHandler(`Todo not found`, 400));
+    }
+
+    const updatedTodo = await Todo.updateOne(
+        {_id: id},
+        {
+            todo,
+            ...(attachmentUrls?.length && {
+                $push: { attachments: { $each: attachmentUrls } }
+            })
+        },
+        { new: true }
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "Todo updated successfully",
+        todo: updatedTodo
+    });
 });
