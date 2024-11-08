@@ -4,7 +4,7 @@ import mongoose, { model } from "mongoose";
 const todoSchema = new mongoose.Schema({
     todo: {
         type: String,
-        required: [true, 'Please enter product name'],
+        required: [true, 'Please enter todo'],
         trim: true
     },
     attachments:{
