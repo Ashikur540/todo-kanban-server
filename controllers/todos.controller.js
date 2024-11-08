@@ -17,7 +17,16 @@ export const getAllTodos = catchAsyncError(
 
 
 export const createTodo = catchAsyncError(async (req, res) => {
-    console.log("✨ ~ file: todos.controller.js:20 ~ createTodo ~ req:", req?.files)
-    const { todo, attachments } = req.body;
-    res.json({ success:true, todo, attachments });
-})
+    
+    
+    const { todo } = req.body;
+    const attachmentUrls = req.uploadedFiles; // Access the uploaded URLs here
+    
+    // Save to database with the URLs
+    const newTodo = await Todo.create({
+        todo,
+        attachments: attachmentUrls
+    });
+
+    res.json({ success: true, todo: newTodo });
+});

@@ -7,6 +7,7 @@ dotenv.config();
 import catchAsyncError from "../hoc/catchAsyncError.js";
 
 
+
 const MAX_FILE_SIZE = 2000000; // 2MB
 
 
@@ -30,12 +31,28 @@ export const upload = multer({
         console.log("✨ ~ file: multer.middleware.js:20 ~ file:", file)
         // accept only images and pdf
         if (!file.mimetype.match(/(jpeg|jpg|png|gif|pdf)$/)) {
-            return cb(new Error('Only images and pdf are allowed!'))
+            return cb(new Error('Only images and pdf are allowed!'), false)
         }
         cb(null, true)
     }
 })
 
+export const handleMulterError = (error, req, res, next) => {
+    if (error instanceof multer.MulterError) {
+        // Handle Multer-specific errors
+        return res.status(400).json({
+            success: false,
+            message: `${error.message}`
+        });
+    } else if (error) {
+        // Handle custom errors from fileFilter
+        return res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+    next();
+};
 
 
 
@@ -48,26 +65,27 @@ cloudinary.config({
 
 export const uploadMultipleFiles = catchAsyncError(
     async (req, res, next) => {
-        // console.log("🚀 ~ uploadMultipleFiles ~ req.files", req.files)
-        // Upload an image
+        const uploadedUrls = [];
+        //  if user upload files then upload to cloudinary
+        if (req.files?.length > 0) {
+            for (const file of req?.files) {
+                const uploadResult = await cloudinary.uploader
+                    .upload(
+                        file.path, {
+                        public_id: file.filename,
+                    }
+                    );
 
-        for (const file of req?.files) {
-            const uploadResult = await cloudinary.uploader
-                .upload(
-                    file.path, {
-                    public_id: file.filename,
-                }
-                )
-                .catch((error) => {
-                    console.log(error);
-                });
-
-            console.log(uploadResult?.secure_url);
-            // 
+                uploadedUrls.push(uploadResult.secure_url);
+            }
         }
-        // console.log(uploadResult);
-        next()
+
+        // Attach the URLs to the request object
+        req.uploadedFiles = uploadedUrls;
+
+        next();
     }
-)
+);
+
 
 
